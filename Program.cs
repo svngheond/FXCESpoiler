@@ -22,7 +22,7 @@ namespace FXCE
     class Program
     {
         private static HttpClient httpClient;
-        private static string apiParticipantListUrl = "https://arena.fxce.com/api/contests/{0}/trading_accounts?lang=en&per=10&page={1}&direction=desc&sort_field=total_profit&is_disqualified=false";
+        private static string apiParticipantListUrl = "https://arena.fxce.com/api/contests/{0}/trading_accounts?lang=en&per=10&page={1}&direction=desc&sort_field=total_profit";
         private static string apiParticipantDetailUrl = "https://stp-api.fxce.com/api/trading_accounts/{0}/latest?lang=vi";
         private static string apiSignalCopylUrl = "https://stp-api.fxce.com/api/trading_accounts/{0}/trading_signal_provides/providers?lang=vi&page=1&per=100";
         private static string contestsUrl = "https://arena.fxce.com/api/contests/{0}?lang=en";
@@ -188,8 +188,8 @@ namespace FXCE
             row += "," + Math.Round(pl, 2);
             row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
-            row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "")*100, 2) + "%";
-            row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2)+"%";
+            row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "") * 100, 2) + "%";
+            row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["profit_factor"] + ""), 2);
@@ -231,7 +231,7 @@ namespace FXCE
             JObject resultObj = JObject.Parse(postData);
             List<string> lstParticipant = new List<string>();
             lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
-            int stt = 1,index=1;
+            int stt = 1, index = 1;
             JArray postObjs = (JArray)resultObj["data"]["items"];
             foreach (JObject item in postObjs)
             {
@@ -239,21 +239,21 @@ namespace FXCE
                 string linkForwardTest = GetSignalForwardTest(item["slug"] + "", item["id"] + "");
                 if (!string.IsNullOrEmpty(linkForwardTest))
                 {
-                    Console.WriteLine("  --> Link forward test: "+linkForwardTest);
+                    Console.WriteLine("  --> Link forward test: " + linkForwardTest);
                     Signal signal = new Signal(linkForwardTest);
                     try
                     {
                         string resultUserJson = GetParticipantDetail(signal.Id, signal.Server).Result;
                         JObject resultUserObj = JObject.Parse(resultUserJson);
                         string row = string.Empty;
-                        row = stt+"," + resultUserObj["data"]["trading_account"]["name"] + "," + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"];
+                        row = stt + "," + resultUserObj["data"]["trading_account"]["name"] + "," + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"];
                         row += "," + resultUserObj["data"]["trading_account"]["latest_balance"];
                         row += "," + resultUserObj["data"]["trading_account"]["latest_equity"];
                         double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
                         row += "," + Math.Round(pl, 2);
                         row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "")*100, 2) + "%";
+                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "") * 100, 2) + "%";
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
@@ -342,9 +342,9 @@ namespace FXCE
                 row += "," + resultDetailObj["data"]["trading_account"]["latest_equity"];
                 double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
                 row += "," + Math.Round(pl, 2);
-                row += "," + Math.Round(pl*100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
+                row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
-                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "")*100, 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "") * 100, 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["fxce_score"] + ""), 2);
@@ -407,13 +407,22 @@ namespace FXCE
 
                     string row = string.Empty;
                     row = stt + "," + participant["name"] + "," + participant["user"]["username"];
-                    resultJson = GetParticipantDetail(participant["id"] + "", participant["tenant"] + "").Result;
+                    try
+                    {
+                        resultJson = GetParticipantDetail(participant["id"] + "", participant["tenant"] + "").Result;
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("    --> Không thể truy cập vào tài khoản riêng tư!");
+                        continue;
+                    }
+
                     JObject resultDetailObj = JObject.Parse(resultJson);
                     row += "," + resultDetailObj["data"]["trading_account"]["latest_balance"];
                     row += "," + resultDetailObj["data"]["trading_account"]["latest_equity"];
                     double pl = double.Parse(resultDetailObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + "");
                     row += "," + Math.Round(pl, 2);
-                    row += "," + Math.Round(pl*100 / double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
+                    row += "," + Math.Round(pl * 100 / double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
@@ -421,7 +430,6 @@ namespace FXCE
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["profit_factor"] + ""), 2);
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["avg_trade_per_week"] + ""), 2);
                     row += "," + resultDetailObj["data"]["trading_account"]["total_retail_equity"] + "";
-                    lstParticipant.Add(row);
                     try
                     {
                         JArray tradingInvestArr = JArray.Parse(resultDetailObj["data"]["trading_investment_config"] + "");
@@ -442,11 +450,13 @@ namespace FXCE
                     {
                         row += ",";
                     }
-                    row += "," + (bool.Parse(participant["trading_account_colosseum_view"]["is_disqualified"] + "")?"Bị loại":"Tham gia");
+                    string is_disqualified = participant["trading_account_colosseum_view"]["is_disqualified"] + "";
+                    row += "," + (bool.Parse(is_disqualified) ? "Bị loại" : "Tham gia");
+                    lstParticipant.Add(row);
                     stt++;
                 }
             }
-            
+
             SaveToExcel(lstParticipant);
             OpenReport();
         }
@@ -579,11 +589,11 @@ namespace FXCE
                 Server = arr[0];
                 Id = arr[1];
             }
-            else if(url.Contains("https://share.fxce.com/t/"))
+            else if (url.Contains("https://share.fxce.com/t/"))
             {
                 string[] arr = url.Replace("https://share.fxce.com/t/", "").Split('/');
                 Id = arr[1];
-                if (arr[0]=="0")
+                if (arr[0] == "0")
                 {
                     Server = "fxce-mt5-live";
                 }
