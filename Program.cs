@@ -25,11 +25,13 @@ namespace FXCE
         private static string apiParticipantListUrl = "https://arena.fxce.com/api/contests/{0}/trading_accounts?lang=en&per=10&page={1}&direction=desc&sort_field=total_profit";
         private static string apiParticipantDetailUrl = "https://stp-api.fxce.com/api/trading_accounts/{0}/latest?lang=vi";
         private static string apiSignalCopylUrl = "https://stp-api.fxce.com/api/trading_accounts/{0}/trading_signal_provides/providers?lang=vi&page=1&per=100";
+        private static string apiSignalOfMasterUrl = "https://stp-api.fxce.com/api/trading_accounts/{0}/related?lang=vi&page=-1";
         private static string contestsUrl = "https://arena.fxce.com/api/contests/{0}?lang=en";
         private static string apiGigaCollectionUrl = "https://ea.fxce.com/api/posts?lang=vi&page=1&per=1000&sort_fields[created_at]=desc&filters[related_categories]=63243723f0fed10001abd866";
         private static string postGigaCollectionUrl = "https://ea.fxce.com/post/{0}_{1}";
+        private static string accountUrl = "https://www.fxce.com/trader-detail/{1}/{0}/account";
         private static string FXCEReport;
-        private static List<int> lstType = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
+        private static List<int> lstType = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         private static void WriteAuthor()
         {
             Console.WriteLine("###############################################################");
@@ -57,10 +59,11 @@ namespace FXCE
             Console.WriteLine("2) Phân tích chi tiết 1 tín hiệu");
             Console.WriteLine("3) Phân tích các tài khoản tham gia trong 1 cuộc thi Arena");
             Console.WriteLine("4) Phân tích các tín hiệu đang copy của 1 tài khoản");
-            Console.WriteLine("5) Phân tích các tín hiệu đang chạy forward test theo chương trình Giga Collection");
-            Console.WriteLine("6)*Phân tích các tín hiệu có trong 1 bộ lọc riêng của bạn");
-            Console.WriteLine("7)*Phân tích các tín hiệu mà bạn đang theo dõi");
-            Console.WriteLine("8) Thoát!");
+            Console.WriteLine("5) Phân tích các tín hiệu đang có của 1 tài khoản");
+            Console.WriteLine("6) Phân tích các tín hiệu đang chạy forward test theo chương trình Giga Collection");
+            Console.WriteLine("7)*Phân tích các tín hiệu có trong 1 bộ lọc riêng của bạn");
+            Console.WriteLine("8)*Phân tích các tín hiệu mà bạn đang theo dõi");
+            Console.WriteLine("9) Thoát!");
             int type = GetType();
 
             try
@@ -90,15 +93,12 @@ namespace FXCE
                     case 5:
                         Console.Clear();
                         WriteAuthor();
-                        PhanTichTinHieuGigaCollection();
+                        PhanTichTinHieuCuaTaiKhoan();
                         break;
                     case 6:
                         Console.Clear();
                         WriteAuthor();
-                        //PhanTichTinHieuFilter();
-                        Console.WriteLine("Mình đang xây dựng. Mời bạn quay lại sau!");
-                        Console.WriteLine("Ấn phím Enter để tiếp tục...");
-                        Console.ReadLine();
+                        PhanTichTinHieuGigaCollection();
                         break;
                     case 7:
                         Console.Clear();
@@ -109,6 +109,14 @@ namespace FXCE
                         Console.ReadLine();
                         break;
                     case 8:
+                        Console.Clear();
+                        WriteAuthor();
+                        //PhanTichTinHieuFilter();
+                        Console.WriteLine("Mình đang xây dựng. Mời bạn quay lại sau!");
+                        Console.WriteLine("Ấn phím Enter để tiếp tục...");
+                        Console.ReadLine();
+                        break;
+                    case 9:
                         Console.WriteLine("Xin chào và hẹn gặp lại!");
                         Thread.Sleep(2000);
                         Environment.Exit(0);
@@ -177,6 +185,8 @@ namespace FXCE
             Console.WriteLine();
             Console.WriteLine("Bắt đầu phân tích tín hiệu copy của tài khoản: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
 
+            Dictionary<string,string> lstSignal = new Dictionary<string, string>();
+            lstSignal.Add(signal.Id, signal.Server);
             List<string> lstParticipant = new List<string>();
             lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
             Console.WriteLine("1. Phân tích: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
@@ -201,7 +211,10 @@ namespace FXCE
                 if (tradingInvestArr.Count > 0)
                 {
                     JToken tradingInvest = tradingInvestArr.Where(x => x["kind"] + "" == "signal").FirstOrDefault();
-                    row += "," + tradingInvest["signal_fee"];
+                    if (tradingInvest != null)
+                        row += "," + tradingInvest["signal_fee"];
+                    else
+                        row += ",";
                 }
                 else
                 {
@@ -214,7 +227,7 @@ namespace FXCE
             }
             lstParticipant.Add(row);
 
-            SaveToExcel(lstParticipant);
+            SaveToExcel(lstParticipant,lstSignal);
             OpenReport();
         }
 
@@ -226,13 +239,14 @@ namespace FXCE
         private static void PhanTichTinHieuGigaCollection()
         {
             FXCEReport = "FXCESpoiler_GigaCollection_" + DateTime.Now.ToString("yyyyMMddhhmmss") + ".xlsx";
-            Console.WriteLine("5) Phân tích các tín hiệu đang chạy forward test theo chương trình Giga Collection");
+            Console.WriteLine("6) Phân tích các tín hiệu đang chạy forward test theo chương trình Giga Collection");
             string postData = GetPostGigaCollections().Result;
             JObject resultObj = JObject.Parse(postData);
             List<string> lstParticipant = new List<string>();
             lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1, index = 1;
             JArray postObjs = (JArray)resultObj["data"]["items"];
+            Dictionary<string, string> lstSignal = new Dictionary<string, string>();
             foreach (JObject item in postObjs)
             {
                 Console.WriteLine(index + ". Phân tích: " + item["title"]);
@@ -241,6 +255,7 @@ namespace FXCE
                 {
                     Console.WriteLine("  --> Link forward test: " + linkForwardTest);
                     Signal signal = new Signal(linkForwardTest);
+                    lstSignal.Add(signal.Id, signal.Server);
                     try
                     {
                         string resultUserJson = GetParticipantDetail(signal.Id, signal.Server).Result;
@@ -266,7 +281,10 @@ namespace FXCE
                             if (tradingInvestArr.Count > 0)
                             {
                                 JToken tradingInvest = tradingInvestArr.Where(x => x["kind"] + "" == "signal").FirstOrDefault();
-                                row += "," + tradingInvest["signal_fee"];
+                                if (tradingInvest != null)
+                                    row += "," + tradingInvest["signal_fee"];
+                                else
+                                    row += ",";
                             }
                             else
                             {
@@ -292,10 +310,93 @@ namespace FXCE
                 }
                 index++;
             }
-            SaveToExcel(lstParticipant);
+            SaveToExcel(lstParticipant, lstSignal);
             OpenReport();
         }
 
+        private static void PhanTichTinHieuCuaTaiKhoan()
+        {
+            FXCEReport = "FXCESpoiler_Signal_" + DateTime.Now.ToString("yyyyMMddhhmmss") + ".xlsx";
+            Console.WriteLine("5) Phân tích các tín hiệu đang có của 1 tài khoản");
+            Console.Write("Mời bạn điền URL tài khoản bạn muốn phân tích các tín hiệu copy của họ: ");
+            string url = Console.ReadLine();
+            Signal signal = new Signal(url);
+            string resultSignalCopy = string.Empty;
+            try
+            {
+                resultSignalCopy = GetSignalOfMaster(signal.Id,signal.Server).Result;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Có lỗi: Tài khoản đang ở chế độ riêng tư.");
+                Console.WriteLine("Ấn phím Enter để tiếp tục...");
+                Console.ReadLine();
+                return;
+            }
+
+            JObject resultSignalCopyObj = JObject.Parse(resultSignalCopy);
+
+            string resultUserJson = GetParticipantDetail(signal.Id, signal.Server).Result;
+            JObject resultUserObj = JObject.Parse(resultUserJson);
+            Console.WriteLine();
+            Console.WriteLine("Bắt đầu phân tích tín hiệu đang có của tài khoản: " + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"]);
+
+            List<string> lstParticipant = new List<string>();
+            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
+            int stt = 1;
+            JArray participantObjs = (JArray)resultSignalCopyObj["data"]["items"];
+            Dictionary<string, string> lstSignal = new Dictionary<string, string>();
+            foreach (JObject participant in participantObjs)
+            {
+                Console.WriteLine(stt + ". Phân tích: " + participant["name"]);
+
+                string participantId = participant["id"] + "";
+                string participantTenant = participant["tenant"] + "";
+                lstSignal.Add(participantId, participantTenant);
+                string resultJson = GetParticipantDetail(participantId, participantTenant).Result;
+                JObject resultDetailObj = JObject.Parse(resultJson);
+                string row = string.Empty;
+                row = stt + "," + resultDetailObj["data"]["trading_account"]["name"] + "," + resultDetailObj["data"]["trading_account"]["partner_user"]["user"]["username"];
+                row += "," + resultDetailObj["data"]["trading_account"]["latest_balance"];
+                row += "," + resultDetailObj["data"]["trading_account"]["latest_equity"];
+                double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
+                row += "," + Math.Round(pl, 2);
+                row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "") * 100, 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["fxce_score"] + ""), 2);
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["profit_factor"] + ""), 2);
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["avg_trade_per_week"] + ""), 2);
+                row += "," + resultDetailObj["data"]["trading_account"]["total_retail_equity"] + "";
+                try
+                {
+                    JArray tradingInvestArr = JArray.Parse(resultDetailObj["data"]["trading_investment_config"] + "");
+                    if (tradingInvestArr.Count > 0)
+                    {
+                        JToken tradingInvest = tradingInvestArr.Where(x => x["kind"] + "" == "signal").FirstOrDefault();
+                        if (tradingInvest != null)
+                            row += "," + tradingInvest["signal_fee"];
+                        else
+                            row += ",";
+                    }
+                    else
+                    {
+                        row += ",";
+                    }
+                }
+                catch (Exception)
+                {
+                    row += ",";
+                }
+
+                lstParticipant.Add(row);
+                stt++;
+            }
+            SaveToExcel(lstParticipant, lstSignal);
+            OpenReport();
+        }
         private static void PhanTichTinHieuCopy()
         {
             FXCEReport = "FXCESpoiler_Copy_" + DateTime.Now.ToString("yyyyMMddhhmmss") + ".xlsx";
@@ -327,13 +428,14 @@ namespace FXCE
             lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1;
             JArray participantObjs = (JArray)resultSignalCopyObj["data"]["items"];
+            Dictionary<string, string> lstSignal = new Dictionary<string, string>();
             foreach (JObject participant in participantObjs)
             {
                 Console.WriteLine(stt + ". Phân tích: " + participant["signal_trading_account"]["name"]);
 
                 string participantId = participant["signal_trading_account"]["id"] + "";
                 string participantTenant = participant["signal_trading_account_tenant"] + "";
-
+                lstSignal.Add(participantId, participantTenant);
                 string resultJson = GetParticipantDetail(participantId, participantTenant).Result;
                 JObject resultDetailObj = JObject.Parse(resultJson);
                 string row = string.Empty;
@@ -357,7 +459,10 @@ namespace FXCE
                     if (tradingInvestArr.Count > 0)
                     {
                         JToken tradingInvest = tradingInvestArr.Where(x => x["kind"] + "" == "signal").FirstOrDefault();
-                        row += "," + tradingInvest["signal_fee"];
+                        if (tradingInvest != null)
+                            row += "," + tradingInvest["signal_fee"];
+                        else
+                            row += ",";
                     }
                     else
                     {
@@ -372,7 +477,7 @@ namespace FXCE
                 lstParticipant.Add(row);
                 stt++;
             }
-            SaveToExcel(lstParticipant);
+            SaveToExcel(lstParticipant, lstSignal);
             OpenReport();
         }
 
@@ -395,6 +500,7 @@ namespace FXCE
             lstParticipant.Add("Thứ tự,Tên quỹ,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
             int pageNum = 10;
             int stt = 1;
+            Dictionary<string, string> lstSignal = new Dictionary<string, string>();
             for (int i = 1; i <= pageNum; i++)
             {
                 string resultJson = GetListParticipant(i, contestsID).Result;
@@ -404,7 +510,7 @@ namespace FXCE
                 foreach (JObject participant in participantObjs)
                 {
                     Console.WriteLine(stt + ". Phân tích: " + participant["name"] + " (" + participant["user"]["username"] + ")");
-
+                    lstSignal.Add(participant["id"] + "", participant["tenant"] + "");
                     string row = string.Empty;
                     row = stt + "," + participant["name"] + "," + participant["user"]["username"];
                     try
@@ -457,10 +563,10 @@ namespace FXCE
                 }
             }
 
-            SaveToExcel(lstParticipant);
+            SaveToExcel(lstParticipant,lstSignal);
             OpenReport();
         }
-        static void SaveToExcel(List<string> lstParticipant)
+        static void SaveToExcel(List<string> lstParticipant,Dictionary<string,string> lstSignal)
         {
             Console.WriteLine("Đang xuất dữ liệu ra excel");
             Application objXL = new Application();
@@ -471,7 +577,13 @@ namespace FXCE
                 string[] arr = lstParticipant[i].Split(',');
                 for (int j = 0, c = arr.Count(); j < c; j++)
                 {
-                    objSHT.Cells[i + 1, j + 1].Value = arr[j];
+                    if (i > 0 && j == 1)
+                    {
+                        string accUrl = string.Format(accountUrl, lstSignal.ElementAt(i-1).Key, lstSignal.ElementAt(i-1).Value);
+                        objSHT.Cells[i + 1, j + 1].Formula = "=HYPERLINK(\"" + accUrl + "\",\"" + arr[j] + "\")";
+                    }
+                    else
+                        objSHT.Cells[i + 1, j + 1].Value = arr[j];
                 }
             }
             Range rangeStyles = objSHT.UsedRange;
@@ -502,6 +614,17 @@ namespace FXCE
             httpClient.DefaultRequestHeaders.Add("x-api-version", "v1");
 
             var response = await httpClient.GetAsync(string.Format(apiSignalCopylUrl, userId));
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        private static async Task<string> GetSignalOfMaster(string userId, string tenant)
+        {
+            httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("x-api-version", "v1");
+            httpClient.DefaultRequestHeaders.Add("x-api-tenant", tenant);
+
+            var response = await httpClient.GetAsync(string.Format(apiSignalOfMasterUrl, userId));
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
