@@ -359,9 +359,9 @@ namespace FXCE
                 row = stt + "," + resultDetailObj["data"]["trading_account"]["name"] + "," + resultDetailObj["data"]["trading_account"]["partner_user"]["user"]["username"];
                 row += "," + resultDetailObj["data"]["trading_account"]["latest_balance"];
                 row += "," + resultDetailObj["data"]["trading_account"]["latest_equity"];
-                double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
+                double pl = double.Parse(resultDetailObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + "");
                 row += "," + Math.Round(pl, 2);
-                row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
+                row += "," + Math.Round(pl * 100 / double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "") * 100, 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
@@ -442,9 +442,9 @@ namespace FXCE
                 row = stt + "," + resultDetailObj["data"]["trading_account"]["name"] + "," + resultDetailObj["data"]["trading_account"]["partner_user"]["user"]["username"];
                 row += "," + resultDetailObj["data"]["trading_account"]["latest_balance"];
                 row += "," + resultDetailObj["data"]["trading_account"]["latest_equity"];
-                double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
+                double pl = double.Parse(resultDetailObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + "");
                 row += "," + Math.Round(pl, 2);
-                row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
+                row += "," + Math.Round(pl * 100 / double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "") * 100, 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
