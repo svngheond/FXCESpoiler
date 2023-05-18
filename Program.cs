@@ -188,7 +188,7 @@ namespace FXCE
             Dictionary<string,string> lstSignal = new Dictionary<string, string>();
             lstSignal.Add(signal.Id, signal.Server);
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
             Console.WriteLine("1. Phân tích: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
             string row = string.Empty;
             row = "1," + resultUserObj["data"]["trading_account"]["name"] + "," + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"];
@@ -197,13 +197,14 @@ namespace FXCE
             double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
             row += "," + Math.Round(pl, 2);
             row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
-            row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
+            row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "") * 100, 2) + "%";
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["profit_factor"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["avg_trade_per_week"] + ""), 2);
+            row += "," + ConvertSecondsToTime(double.Parse(resultUserObj["data"]["avg_trade_length"] + ""));
             row += "," + resultUserObj["data"]["trading_account"]["total_retail_equity"] + "";
             try
             {
@@ -243,7 +244,7 @@ namespace FXCE
             string postData = GetPostGigaCollections().Result;
             JObject resultObj = JObject.Parse(postData);
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1, index = 1;
             JArray postObjs = (JArray)resultObj["data"]["items"];
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -267,13 +268,14 @@ namespace FXCE
                         double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
                         row += "," + Math.Round(pl, 2);
                         row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
+                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "") * 100, 2) + "%";
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["profit_factor"] + ""), 2);
                         row += "," + Math.Round(double.Parse(resultUserObj["data"]["avg_trade_per_week"] + ""), 2);
+                        row += "," + ConvertSecondsToTime(double.Parse(resultUserObj["data"]["avg_trade_length"] + ""));
                         row += "," + resultUserObj["data"]["trading_account"]["total_retail_equity"] + "";
                         try
                         {
@@ -342,7 +344,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích tín hiệu đang có của tài khoản: " + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"]);
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1;
             JArray participantObjs = (JArray)resultSignalCopyObj["data"]["items"];
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -362,13 +364,14 @@ namespace FXCE
                 double pl = double.Parse(resultDetailObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + "");
                 row += "," + Math.Round(pl, 2);
                 row += "," + Math.Round(pl * 100 / double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
-                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "") * 100, 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["fxce_score"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["profit_factor"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["avg_trade_per_week"] + ""), 2);
+                row += "," + ConvertSecondsToTime(double.Parse(resultDetailObj["data"]["avg_trade_length"] + ""));
                 row += "," + resultDetailObj["data"]["trading_account"]["total_retail_equity"] + "";
                 try
                 {
@@ -425,7 +428,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích tín hiệu copy của tài khoản: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1;
             JArray participantObjs = (JArray)resultSignalCopyObj["data"]["items"];
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -445,13 +448,14 @@ namespace FXCE
                 double pl = double.Parse(resultDetailObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + "");
                 row += "," + Math.Round(pl, 2);
                 row += "," + Math.Round(pl * 100 / double.Parse(resultDetailObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
-                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["gain"] + ""), 2) + "%";
+                row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["win_rate"] + "") * 100, 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["fxce_score"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["profit_factor"] + ""), 2);
                 row += "," + Math.Round(double.Parse(resultDetailObj["data"]["avg_trade_per_week"] + ""), 2);
+                row += "," + ConvertSecondsToTime(double.Parse(resultDetailObj["data"]["avg_trade_length"] + ""));
                 row += "," + resultDetailObj["data"]["trading_account"]["total_retail_equity"] + "";
                 try
                 {
@@ -497,7 +501,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích cuộc thi: " + resultArenaObj["data"]["contest_content"]["name"]);
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tên quỹ,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng vốn,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
+            lstParticipant.Add("Thứ tự,Tên quỹ,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
             int pageNum = 10;
             int stt = 1;
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -535,6 +539,7 @@ namespace FXCE
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["fxce_score"] + ""), 2);
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["trading_account"]["profit_factor"] + ""), 2);
                     row += "," + Math.Round(double.Parse(resultDetailObj["data"]["avg_trade_per_week"] + ""), 2);
+                    row += "," + ConvertSecondsToTime(double.Parse(resultDetailObj["data"]["avg_trade_length"] + ""));
                     row += "," + resultDetailObj["data"]["trading_account"]["total_retail_equity"] + "";
                     try
                     {
@@ -695,6 +700,14 @@ namespace FXCE
             var response = await httpClient.GetAsync(string.Format(contestsUrl, contestsID));
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
+        }
+        public static string ConvertSecondsToTime(double seconds)
+        {
+            int minutes = (int)(seconds / 60);
+            int hours = minutes / 60;
+            minutes %= 60;
+
+            return $"{hours} giờ {minutes} phút";
         }
     }
     public class Signal
