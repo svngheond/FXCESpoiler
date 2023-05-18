@@ -501,7 +501,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích cuộc thi: " + resultArenaObj["data"]["contest_content"]["name"]);
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tên quỹ,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
+            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
             int pageNum = 10;
             int stt = 1;
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
