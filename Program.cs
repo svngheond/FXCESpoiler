@@ -44,6 +44,23 @@ namespace FXCE
 
         static void Main(string[] args)
         {
+            //DateTime currentDate = DateTime.Now; // lấy ngày hiện tại
+            //DateTime truDT = currentDate.AddDays(-22);
+            //Console.WriteLine(truDT.ToString("dd/MM/yyyyThh:mm:ssZ"));
+            //Console.ReadLine();
+            //DateTime targetDate = Convert.ToDateTime("2023-04-24T14:18:51.778+03:00");
+
+            //TimeSpan timeSpan = currentDate - targetDate; // tính số ngày giữa hai ngày
+
+            //int totalDays = (int)timeSpan.TotalDays; // lấy số ngày từ kết quả TimeSpan
+
+            //int months = totalDays / 30; // tính số tháng
+            //int days = totalDays % 30; // tính số ngày
+
+            //Console.WriteLine("{0} tháng {1} ngày", months, days); // in ra kết quả
+
+            //Console.ReadLine();
+
             //Tạo thư mục Report nếu chưa có
             bool exists = System.IO.Directory.Exists(Directory.GetCurrentDirectory() + "\\Report\\");
             if (!exists)
@@ -188,7 +205,7 @@ namespace FXCE
             Dictionary<string,string> lstSignal = new Dictionary<string, string>();
             lstSignal.Add(signal.Id, signal.Server);
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("#,Tín hiệu,Tài khoản,Balance,Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Profit factor,Lệnh trung bình/tuần,Thời gian giữ lệnh TB,Kinh nghiệm giao dịch,Quỹ đầu tư,Phí copy (FXCE)");
             Console.WriteLine("1. Phân tích: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
             string row = string.Empty;
             row = "1," + resultUserObj["data"]["trading_account"]["name"] + "," + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"];
@@ -204,6 +221,7 @@ namespace FXCE
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["profit_factor"] + ""), 2);
             row += "," + Math.Round(double.Parse(resultUserObj["data"]["avg_trade_per_week"] + ""), 2);
+            row += "," + ConvertSecondsToTime(double.Parse(resultUserObj["data"]["avg_trade_length"] + ""));
             row += "," + ConvertSecondsToTime(double.Parse(resultUserObj["data"]["avg_trade_length"] + ""));
             row += "," + resultUserObj["data"]["trading_account"]["total_retail_equity"] + "";
             try
@@ -244,7 +262,7 @@ namespace FXCE
             string postData = GetPostGigaCollections().Result;
             JObject resultObj = JObject.Parse(postData);
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("#,Tín hiệu,Tài khoản,Balance,Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Profit factor,Lệnh trung bình/tuần,Thời gian giữ lệnh TB,Kinh nghiệm giao dịch,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1, index = 1;
             JArray postObjs = (JArray)resultObj["data"]["items"];
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -344,7 +362,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích tín hiệu đang có của tài khoản: " + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"]);
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("#,Tín hiệu,Tài khoản,Balance,Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Profit factor,Lệnh trung bình/tuần,Thời gian giữ lệnh TB,Kinh nghiệm giao dịch,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1;
             JArray participantObjs = (JArray)resultSignalCopyObj["data"]["items"];
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -428,7 +446,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích tín hiệu copy của tài khoản: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm Fxce,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE)");
+            lstParticipant.Add("#,Tín hiệu,Tài khoản,Balance,Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Profit factor,Lệnh trung bình/tuần,Thời gian giữ lệnh TB,Kinh nghiệm giao dịch,Quỹ đầu tư,Phí copy (FXCE)");
             int stt = 1;
             JArray participantObjs = (JArray)resultSignalCopyObj["data"]["items"];
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -501,7 +519,7 @@ namespace FXCE
             Console.WriteLine("Bắt đầu phân tích cuộc thi: " + resultArenaObj["data"]["contest_content"]["name"]);
 
             List<string> lstParticipant = new List<string>();
-            lstParticipant.Add("Thứ tự,Tín hiệu,Tài khoản,Số dư (Balance),Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Yếu tố lợi nhuận,Lệnh trung bình/tuần,Thời gian giữ lệnh trung bình,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
+            lstParticipant.Add("#,Tín hiệu,Tài khoản,Balance,Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Profit factor,Lệnh trung bình/tuần,Thời gian giữ lệnh TB,Kinh nghiệm giao dịch,Quỹ đầu tư,Phí copy (FXCE),Trạng thái");
             int pageNum = 10;
             int stt = 1;
             Dictionary<string, string> lstSignal = new Dictionary<string, string>();
@@ -514,12 +532,12 @@ namespace FXCE
                 foreach (JObject participant in participantObjs)
                 {
                     Console.WriteLine(stt + ". Phân tích: " + participant["name"] + " (" + participant["user"]["username"] + ")");
-                    lstSignal.Add(participant["id"] + "", participant["tenant"] + "");
                     string row = string.Empty;
                     row = stt + "," + participant["name"] + "," + participant["user"]["username"];
                     try
                     {
                         resultJson = GetParticipantDetail(participant["id"] + "", participant["tenant"] + "").Result;
+                        lstSignal.Add(participant["id"] + "", participant["tenant"] + "");
                     }
                     catch (Exception)
                     {
@@ -598,6 +616,10 @@ namespace FXCE
             rangeHeader.Font.Bold = true;
             rangeHeader.AutoFilter(1);
             rangeStyles.Columns.AutoFit();
+
+            objSHT.Activate();
+            objSHT.Application.ActiveWindow.SplitRow = 1;
+            objSHT.Application.ActiveWindow.FreezePanes = true;
 
             objWB.SaveAs(Directory.GetCurrentDirectory() + "\\Report\\" + FXCEReport);
             objWB.Close();
