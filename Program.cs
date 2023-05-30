@@ -45,9 +45,9 @@ namespace FXCE
         static void Main(string[] args)
         {
             //DateTime currentDate = DateTime.Now; // lấy ngày hiện tại
-            //DateTime truDT = currentDate.AddDays(-22);
-            //Console.WriteLine(truDT.ToString("dd/MM/yyyyThh:mm:ssZ"));
-            //Console.ReadLine();
+            ////DateTime truDT = currentDate.AddDays(-22);
+            ////Console.WriteLine(truDT.ToString("dd/MM/yyyyThh:mm:ssZ"));
+            ////Console.ReadLine();
             //DateTime targetDate = Convert.ToDateTime("2023-04-24T14:18:51.778+03:00");
 
             //TimeSpan timeSpan = currentDate - targetDate; // tính số ngày giữa hai ngày
@@ -202,7 +202,7 @@ namespace FXCE
             Console.WriteLine();
             Console.WriteLine("Bắt đầu phân tích tín hiệu copy của tài khoản: " + resultUserObj["data"]["trading_account"]["name"] + " (" + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"] + ")");
 
-            Dictionary<string,string> lstSignal = new Dictionary<string, string>();
+            Dictionary<string, string> lstSignal = new Dictionary<string, string>();
             lstSignal.Add(signal.Id, signal.Server);
             List<string> lstParticipant = new List<string>();
             lstParticipant.Add("#,Tín hiệu,Tài khoản,Balance,Equity,P&L,Sụt giảm hiện tại,Tăng trưởng,Tỉ lệ thắng,Sụt giảm lớn nhất,CAGR/MDD,Điểm FXCE,Profit factor,Lệnh trung bình/tuần,Thời gian giữ lệnh TB,Kinh nghiệm giao dịch,Quỹ đầu tư,Phí copy (FXCE)");
@@ -246,7 +246,7 @@ namespace FXCE
             }
             lstParticipant.Add(row);
 
-            SaveToExcel(lstParticipant,lstSignal);
+            SaveToExcel(lstParticipant, lstSignal);
             OpenReport();
         }
 
@@ -274,55 +274,59 @@ namespace FXCE
                 {
                     Console.WriteLine("  --> Link forward test: " + linkForwardTest);
                     Signal signal = new Signal(linkForwardTest);
-                    lstSignal.Add(signal.Id, signal.Server);
+                    
+                    string resultUserJson = string.Empty;
                     try
                     {
-                        string resultUserJson = GetParticipantDetail(signal.Id, signal.Server).Result;
-                        JObject resultUserObj = JObject.Parse(resultUserJson);
-                        string row = string.Empty;
-                        row = stt + "," + resultUserObj["data"]["trading_account"]["name"] + "," + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"];
-                        row += "," + resultUserObj["data"]["trading_account"]["latest_balance"];
-                        row += "," + resultUserObj["data"]["trading_account"]["latest_equity"];
-                        double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
-                        row += "," + Math.Round(pl, 2);
-                        row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "") * 100, 2) + "%";
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["profit_factor"] + ""), 2);
-                        row += "," + Math.Round(double.Parse(resultUserObj["data"]["avg_trade_per_week"] + ""), 2);
-                        row += "," + ConvertSecondsToTime(double.Parse(resultUserObj["data"]["avg_trade_length"] + ""));
-                        row += "," + resultUserObj["data"]["trading_account"]["total_retail_equity"] + "";
-                        try
-                        {
-                            JArray tradingInvestArr = JArray.Parse(resultUserObj["data"]["trading_investment_config"] + "");
-                            if (tradingInvestArr.Count > 0)
-                            {
-                                JToken tradingInvest = tradingInvestArr.Where(x => x["kind"] + "" == "signal").FirstOrDefault();
-                                if (tradingInvest != null)
-                                    row += "," + tradingInvest["signal_fee"];
-                                else
-                                    row += ",";
-                            }
-                            else
-                            {
-                                row += ",";
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            row += ",";
-                        }
-
-                        lstParticipant.Add(row);
-                        stt++;
+                        resultUserJson = GetParticipantDetail(signal.Id, signal.Server).Result;
+                        lstSignal.Add(signal.Id, signal.Server);
                     }
                     catch (Exception)
                     {
                         Console.WriteLine("    --> Không thể truy cập vào tài khoản riêng tư!");
+                        index++;
+                        continue;
                     }
+                    JObject resultUserObj = JObject.Parse(resultUserJson);
+                    string row = string.Empty;
+                    row = stt + "," + resultUserObj["data"]["trading_account"]["name"] + "," + resultUserObj["data"]["trading_account"]["partner_user"]["user"]["username"];
+                    row += "," + resultUserObj["data"]["trading_account"]["latest_balance"];
+                    row += "," + resultUserObj["data"]["trading_account"]["latest_equity"];
+                    double pl = double.Parse(resultUserObj["data"]["trading_account"]["latest_equity"] + "") - double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + "");
+                    row += "," + Math.Round(pl, 2);
+                    row += "," + Math.Round(pl * 100 / double.Parse(resultUserObj["data"]["trading_account"]["latest_balance"] + ""), 2) + "%";
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["latest_analysis"]["account_growth"] + ""), 2) + "%";
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["win_rate"] + "") * 100, 2) + "%";
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["max_equity_drawdown"] + ""), 2) + "%";
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["recovery_factor"] + ""), 2);
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["fxce_score"] + ""), 2);
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["trading_account"]["profit_factor"] + ""), 2);
+                    row += "," + Math.Round(double.Parse(resultUserObj["data"]["avg_trade_per_week"] + ""), 2);
+                    row += "," + ConvertSecondsToTime(double.Parse(resultUserObj["data"]["avg_trade_length"] + ""));
+                    row += "," + resultUserObj["data"]["trading_account"]["total_retail_equity"] + "";
+                    try
+                    {
+                        JArray tradingInvestArr = JArray.Parse(resultUserObj["data"]["trading_investment_config"] + "");
+                        if (tradingInvestArr.Count > 0)
+                        {
+                            JToken tradingInvest = tradingInvestArr.Where(x => x["kind"] + "" == "signal").FirstOrDefault();
+                            if (tradingInvest != null)
+                                row += "," + tradingInvest["signal_fee"];
+                            else
+                                row += ",";
+                        }
+                        else
+                        {
+                            row += ",";
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        row += ",";
+                    }
+
+                    lstParticipant.Add(row);
+                    stt++;
                 }
                 else
                 {
@@ -344,7 +348,7 @@ namespace FXCE
             string resultSignalCopy = string.Empty;
             try
             {
-                resultSignalCopy = GetSignalOfMaster(signal.Id,signal.Server).Result;
+                resultSignalCopy = GetSignalOfMaster(signal.Id, signal.Server).Result;
             }
             catch (Exception)
             {
@@ -373,7 +377,16 @@ namespace FXCE
                 string participantId = participant["id"] + "";
                 string participantTenant = participant["tenant"] + "";
                 lstSignal.Add(participantId, participantTenant);
-                string resultJson = GetParticipantDetail(participantId, participantTenant).Result;
+                string resultJson = string.Empty;
+                try
+                {
+                    resultJson = GetParticipantDetail(participantId, participantTenant).Result;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("    --> Không thể truy cập vào tài khoản riêng tư!");
+                    continue;
+                }
                 JObject resultDetailObj = JObject.Parse(resultJson);
                 string row = string.Empty;
                 row = stt + "," + resultDetailObj["data"]["trading_account"]["name"] + "," + resultDetailObj["data"]["trading_account"]["partner_user"]["user"]["username"];
@@ -457,7 +470,16 @@ namespace FXCE
                 string participantId = participant["signal_trading_account"]["id"] + "";
                 string participantTenant = participant["signal_trading_account_tenant"] + "";
                 lstSignal.Add(participantId, participantTenant);
-                string resultJson = GetParticipantDetail(participantId, participantTenant).Result;
+                string resultJson = string.Empty;
+                try
+                {
+                    resultJson = GetParticipantDetail(participantId, participantTenant).Result;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("    --> Không thể truy cập vào tài khoản riêng tư!");
+                    continue;
+                }
                 JObject resultDetailObj = JObject.Parse(resultJson);
                 string row = string.Empty;
                 row = stt + "," + resultDetailObj["data"]["trading_account"]["name"] + "," + resultDetailObj["data"]["trading_account"]["partner_user"]["user"]["username"];
@@ -586,10 +608,10 @@ namespace FXCE
                 }
             }
 
-            SaveToExcel(lstParticipant,lstSignal);
+            SaveToExcel(lstParticipant, lstSignal);
             OpenReport();
         }
-        static void SaveToExcel(List<string> lstParticipant,Dictionary<string,string> lstSignal)
+        static void SaveToExcel(List<string> lstParticipant, Dictionary<string, string> lstSignal)
         {
             Console.WriteLine("Đang xuất dữ liệu ra excel");
             Application objXL = new Application();
@@ -602,7 +624,7 @@ namespace FXCE
                 {
                     if (i > 0 && j == 1)
                     {
-                        string accUrl = string.Format(accountUrl, lstSignal.ElementAt(i-1).Key, lstSignal.ElementAt(i-1).Value);
+                        string accUrl = string.Format(accountUrl, lstSignal.ElementAt(i - 1).Key, lstSignal.ElementAt(i - 1).Value);
                         objSHT.Cells[i + 1, j + 1].Formula = "=HYPERLINK(\"" + accUrl + "\",\"" + arr[j] + "\")";
                     }
                     else
